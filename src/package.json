@@ -1,0 +1,24 @@
+{
+  "name": "serialmonitor",
+  "version": "0.0.1",
+  "description": "serial tool for cnc",
+  "main": "bundle/app/app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xeecos/SerialMonitor.git"
+  },
+  "keywords": [
+    "svg",
+    "serial",
+    "cnc"
+  ],
+  "author": "xeecos",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/xeecos/SerialMonitor/issues"
+  },
+  "homepage": "https://github.com/xeecos/SerialMonitor#readme"
+}

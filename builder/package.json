@@ -1,0 +1,64 @@
+{
+  "name": "serialmonitorbuildtool",
+  "version": "0.0.1",
+  "description": "serial monitor build tool",
+  "author": {
+    "name": "xeecos",
+    "email": "flashindream@gmail.com"
+  },
+  "homepage": "http://yeakong.com",
+  "main": "../src/bundle/app/app.js",
+  "scripts": {
+    "postinstall": "electron-builder install-app-deps",
+    "publish": "electron-builder"
+  },
+  "build": {
+    "appId": "com.yeakong.serialmonitor",
+    "productName": "SerialMonitor",
+    "compression": "normal",
+    "copyright": "Copyright � 2017 Yeakong.com",
+    "directories": {
+      "buildResources": "build",
+      "output": "releases",
+      "app": "../src"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64", "ia32"]
+        }
+      ]
+    },
+    "mac": {
+      "category": "public.app-category.developer-tools",
+      "target": [
+        {
+          "target": "dmg"
+        }
+      ]
+    },
+    "linux": {
+      "target": "deb",
+      "icon": "build/linux/"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    },
+    "buildDependenciesFromSource": false,
+    "nodeGypRebuild": false,
+    "buildVersion": "1",
+    "electronVersion": "1.7.8"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/xeecos/SerialMonitor"
+  },
+  "keywords": ["serial", "cnc"],
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {
+    "electron": "^1.7.8"
+  }
+}

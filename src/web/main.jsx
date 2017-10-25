@@ -10,17 +10,49 @@ export default class MainUI extends React.Component {
   constructor(...args) {
     super(...args);
     this.state = {
-      messages: [
-        { time: new Date(), msg: "hello", received: true },
-        { time: new Date(), msg: "world", received: false }
-      ],
-      tags: ["test"]
+      ending: "",
+      messages: [],
+      tags: []
     };
   }
-  componentDidMount() {}
-  createNewTag() {}
+  componentDidMount() {
+    this.refs.devices.setReceiver(this.onReceived);
+  }
+  createNewTag(msg) {
+    this.state.tags.push(msg);
+    if (this.state.tags.length > 10) {
+      this.state.tags.shift();
+    }
+    this.forceUpdate();
+  }
   sendMessage(msg) {
-    console.log(msg);
+    if (msg.length > 0) {
+      addMessage(msg, false);
+    }
+  }
+  addMessage(msg, received) {
+    this.state.messages.push({
+      time: new Date(),
+      msg: msg,
+      received: received
+    });
+    if (this.state.messages.length > 50) {
+      this.state.messages.shift();
+    }
+    this.forceUpdate();
+  }
+  onReceived(buffer) {
+    addMessage(buffer.toString(), true);
+  }
+  handleCloseTag(removedTag) {
+    const tags = this.state.tags.concat([]);
+    for (var i = 0; i < tags.length; i++) {
+      if (tags[i] === removedTag) {
+        this.state.tags.slice(i, 1);
+        break;
+      }
+    }
+    this.forceUpdate();
   }
   render() {
     var messages = [];
@@ -36,15 +68,16 @@ export default class MainUI extends React.Component {
       );
     }
     var tags = [];
-    for (var i = 0; i < this.state.tags.length; i++) {
+    for (var i = this.state.tags.length - 1; i >= 0; i--) {
       var tag = this.state.tags[i];
       tags.push(
         <Tag
-          key={Math.random()}
+          key={tag}
           closable
           onClick={(e => {
             this.sendMessage(e.target.innerText);
           }).bind(this)}
+          onClose={() => this.handleCloseTag(tag)}
         >
           {tag}
         </Tag>
@@ -54,7 +87,7 @@ export default class MainUI extends React.Component {
       <div className="content">
         <div className="nav">
           <div className="devices">
-            <DeviceSelector ref="device" />
+            <DeviceSelector ref="devices" />
           </div>
         </div>
         <div className="messages">
@@ -74,7 +107,12 @@ export default class MainUI extends React.Component {
                 this.state.messages = [];
                 this.forceUpdate();
               }).bind(this)}
-              style={{ fontSize: 18 }}
+              style={{
+                fontSize: 24,
+                cursor: "pointer",
+                verticalAlign: "middle",
+                lineHeight: 18
+              }}
               type="delete"
             />
           </div>
@@ -93,7 +131,10 @@ export default class MainUI extends React.Component {
                 <Select
                   defaultValue="0"
                   style={{ width: 80 }}
-                  onChange={() => {}}
+                  onChange={(e => {
+                    this.state.ending =
+                      e == 0 ? "" : e == 1 ? "\r" : e == 2 ? "\n" : "\r\n";
+                  }).bind(this)}
                 >
                   <Option value="0">无结束符</Option>
                   <Option value="1">\r</Option>
@@ -108,6 +149,7 @@ export default class MainUI extends React.Component {
                   onPressEnter={(e => {
                     this.sendMessage(e.target.value);
                     this.createNewTag(e.target.value);
+                    e.target.value = "";
                   }).bind(this)}
                 />
                 <div className="tags-list">{tags}</div>
@@ -117,6 +159,19 @@ export default class MainUI extends React.Component {
               <div className="sender-tool">
                 <TextArea ref="send-message" rows={4} />
 
+                <Select
+                  defaultValue="0"
+                  style={{ width: 80 }}
+                  onChange={(e => {
+                    this.state.ending =
+                      e == 0 ? "" : e == 1 ? "\r" : e == 2 ? "\n" : "\r\n";
+                  }).bind(this)}
+                >
+                  <Option value="0">无结束符</Option>
+                  <Option value="1">\r</Option>
+                  <Option value="2">\n</Option>
+                  <Option value="3">\r\n</Option>
+                </Select>
                 <Button
                   type="primary"
                   size="large"
@@ -152,6 +207,9 @@ export default class MainUI extends React.Component {
                   条件
                 </Checkbox>
               </div>
+            </TabPane>
+            <TabPane tab="图形模式" key="3">
+              <div>Coming Soon</div>
             </TabPane>
           </Tabs>
         </div>

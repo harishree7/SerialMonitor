@@ -7,7 +7,6 @@ export default class DeviceSelector extends React.Component {
     super(...args);
     this.ports = [];
     this.currentIndex = -1;
-    this.listeners = [];
     Serial.list(this.onSerialList.bind(this));
   }
   onSerialList(err, ports) {
@@ -33,6 +32,9 @@ export default class DeviceSelector extends React.Component {
     );
     this.serial.on("data", this.onReceived.bind(this));
   }
+  setReceiver(receiver) {
+    this.listener = receiver;
+  }
   sendMessage(msg) {
     return new Promise(resolve => {
       if (this.serial && this.serial.isOpen) {
@@ -46,6 +48,10 @@ export default class DeviceSelector extends React.Component {
   }
   onReceived(buffer) {
     var msg = buffer.toString();
+    var callback = this.listener;
+    if (callback) {
+      callback(buffer);
+    }
     console.log("received:", msg);
   }
   handleMenuClick(e) {
@@ -81,14 +87,15 @@ export default class DeviceSelector extends React.Component {
     }
     const menu = <Menu onClick={this.handleMenuClick.bind(this)}>{items}</Menu>;
     return (
-      <div>
+      <div className="devices-list">
         <Dropdown
           ref="menu"
           overlay={menu}
           trigger={["click"]}
+          size={"large"}
           onClick={this.handleButtonClick.bind(this)}
         >
-          <a className="ant-dropdown-link" href="#">
+          <a className="ant-dropdown-link" href="#" style={{ fontSize: 14 }}>
             {this.currentIndex == -1
               ? "未连接"
               : this.ports[this.currentIndex].comName}{" "}

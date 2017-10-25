@@ -1,63 +1,66 @@
 body {
-    margin: 0 0;
+  margin: 0 0;
 }
 
 .nav {
-    width: 100%;
-    float: left;
-    display: block;
+  width: 100%;
+  float: left;
+  display: block;
 }
 
 .content {
-    width: 100%;
-    height: 100%;
+  width: 100%;
+  height: 100%;
 }
 
 .devices {
-    float: right;
+  float: right;
 }
 
 .messages {
-    width: 100%;
-    padding: 5px 5px;
-    display: block;
-    float: left;
+  width: 100%;
+  padding: 5px 5px;
+  display: block;
+  float: left;
 }
 
 .messages-tool {
-    position: absolute;
-    right: 28px;
-    bottom: 220px;
-    z-index: 999;
+  position: absolute;
+  right: 28px;
+  bottom: 40px;
+  z-index: 999;
 }
 
 .messages-panel {
-    width: 100%;
-    height: 480px;
-    margin: 0 0;
-    overflow-y: scroll;
+  width: 100%;
+  height: 480px;
+  margin: 0 0;
+  overflow-y: scroll;
 }
 
 .sender {
-    width: 100%;
-    padding-left: 10px;
-    display: block;
-    float: left;
+  width: 100%;
+  padding-left: 10px;
+  display: block;
+  float: left;
 }
 
 .sender-tool {
-    width: 100%;
-    margin: 0 0;
+  width: 100%;
+  margin: 0 0;
 }
 
 .tags-list {
-    margin-top: 15px;
+  margin-top: 15px;
 }
 
 .message-received {
-    color: #009468;
+  color: #009468;
 }
 
 .message-sent {
-    color: #b86200;
+  color: #b86200;
+}
+.devices-list {
+  padding: 5px 10px 5px 10px;
 }

@@ -1,41 +1,42 @@
-import { app, ipcMain } from "electron";
-import Promise from "promise";
+const { BrowserWindow, app, ipcMain } = require("electron");
+const path = require("path");
+let mainWindow;
 
-function main() {
-    try {
-        parseArgv(process.argv);
-    } catch (err) {
-        console.error(err.message);
-        app.exit(1);
-        return;
-    }
-    app.once("quit", function() {
-        application.quit();
+function createWindow() {
+    // Create the browser window.
+    mainWindow = new BrowserWindow({
+        title: "Serial Monitor",
+        width: 1024,
+        height: 768,
+        "web-preferences": {
+            plugins: true,
+            nodeIntegration: true
+        }
+    });
+
+    console.log($dirname);
+    // and load the index.html of the app.
+    mainWindow.loadURL(`file://${__dirname}/../web/index.html`);
+
+    // Open the DevTools.
+    mainWindow.webContents.openDevTools();
+    mainWindow.on("closed", function() {
+        mainWindow = null;
     });
 }
 
-if (app.isReady()) {
-    global.perfAppReady = Date.now();
-    main();
-} else {
-    app.once("ready", () => {
-        global.perfAppReady = Date.now();
-        main();
-    });
-    app.on("window-all-closed", () => {
-        app.quit();
-    });
-}
+app.on("ready", createWindow);
 
-const shouldQuit = app.makeSingleInstance((commandLine, workingDirectory) => {
-    // Someone tried to run a second instance, we should focus our window.
-    const mainWindow = apis.getAPI("WindowsManagement").getWindow("default");
-    if (mainWindow) {
-        if (mainWindow.isMinimized()) mainWindow.restore();
-        mainWindow.focus();
-    }
+// Quit when all windows are closed.
+app.on("window-all-closed", function() {
+    app.quit();
 });
 
-if (shouldQuit) {
-    app.quit();
-}
+app.on("activate", function() {
+    if (mainWindow === null) {
+        createWindow();
+    }
+});
+process.on("uncaughtException", function(err) {
+    console.log(err);
+});

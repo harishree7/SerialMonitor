@@ -1,4 +1,4 @@
-const { BrowserWindow, app, ipcMain } = require("electron");
+const { BrowserWindow, app, Menu } = require("electron");
 const path = require("path");
 let mainWindow;
 
@@ -6,18 +6,20 @@ function createWindow() {
     // Create the browser window.
     mainWindow = new BrowserWindow({
         title: "Serial Monitor",
-        width: 1024,
-        height: 768,
+        width: 704,
+        height: 729,
         "web-preferences": {
             plugins: true,
             nodeIntegration: true
-        }
+        },
+        resizable: false,
+        maximizable: false
     });
 
-    console.log($dirname);
+    // console.log(path.join($dirname, "/../"));
     // and load the index.html of the app.
-    mainWindow.loadURL(`file://${__dirname}/../web/index.html`);
-
+    mainWindow.loadURL(`file://${$dirname}/../web/index.html`);
+    Menu.setApplicationMenu(null);
     // Open the DevTools.
     mainWindow.webContents.openDevTools();
     mainWindow.on("closed", function() {

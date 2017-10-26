@@ -5,7 +5,7 @@ const { TextArea } = Input;
 const { TabPane } = Tabs;
 const { Option } = Select;
 import DeviceSelector from "./components/devices.jsx";
-import "./styles/style.css";
+import "./styles/style.scss";
 export default class MainUI extends React.Component {
   constructor(...args) {
     super(...args);
@@ -16,7 +16,7 @@ export default class MainUI extends React.Component {
     };
   }
   componentDidMount() {
-    this.refs.devices.setReceiver(this.onReceived);
+    this.refs.devices.setReceiver(this.onReceived.bind(this));
   }
   createNewTag(msg) {
     this.state.tags.push(msg);
@@ -27,7 +27,7 @@ export default class MainUI extends React.Component {
   }
   sendMessage(msg) {
     if (msg.length > 0) {
-      addMessage(msg, false);
+      this.addMessage(msg, false);
     }
   }
   addMessage(msg, received) {
@@ -42,7 +42,7 @@ export default class MainUI extends React.Component {
     this.forceUpdate();
   }
   onReceived(buffer) {
-    addMessage(buffer.toString(), true);
+    this.addMessage(buffer.toString(), true);
   }
   handleCloseTag(removedTag) {
     const tags = this.state.tags.concat([]);
@@ -110,7 +110,6 @@ export default class MainUI extends React.Component {
               style={{
                 fontSize: 24,
                 cursor: "pointer",
-                verticalAlign: "middle",
                 lineHeight: 18
               }}
               type="delete"
@@ -121,37 +120,40 @@ export default class MainUI extends React.Component {
           <Tabs defaultActiveKey="1" onChange={() => {}}>
             <TabPane tab="单行模式" key="1">
               <div className="sender-tool">
-                <Checkbox
-                  onChange={e => {
-                    console.log(`checked = ${e.target.checked}`);
-                  }}
-                >
-                  Hex
-                </Checkbox>
-                <Select
-                  defaultValue="0"
-                  style={{ width: 80 }}
-                  onChange={(e => {
-                    this.state.ending =
-                      e == 0 ? "" : e == 1 ? "\r" : e == 2 ? "\n" : "\r\n";
-                  }).bind(this)}
-                >
-                  <Option value="0">无结束符</Option>
-                  <Option value="1">\r</Option>
-                  <Option value="2">\n</Option>
-                  <Option value="3">\r\n</Option>
-                </Select>
-                <Input
-                  className="input-sender"
-                  style={{ width: 545, marginLeft: 10 }}
-                  addonAfter={<Icon type="enter" />}
-                  placeholder="发送的字符串"
-                  onPressEnter={(e => {
-                    this.sendMessage(e.target.value);
-                    this.createNewTag(e.target.value);
-                    e.target.value = "";
-                  }).bind(this)}
-                />
+                <div style={{ float: "left", width: 140 }}>
+                  <Checkbox
+                    onChange={e => {
+                      console.log(`checked = ${e.target.checked}`);
+                    }}
+                  >
+                    Hex
+                  </Checkbox>
+                  <Select
+                    defaultValue="0"
+                    style={{ width: 80 }}
+                    onChange={(e => {
+                      this.state.ending =
+                        e == 0 ? "" : e == 1 ? "\r" : e == 2 ? "\n" : "\r\n";
+                    }).bind(this)}
+                  >
+                    <Option value="0">无结束符</Option>
+                    <Option value="1">\r</Option>
+                    <Option value="2">\n</Option>
+                    <Option value="3">\r\n</Option>
+                  </Select>
+                </div>
+                <div className="input-sender">
+                  <Input
+                    addonAfter={<Icon type="enter" />}
+                    placeholder="发送的字符串"
+                    onPressEnter={(e => {
+                      this.sendMessage(e.target.value);
+                      this.createNewTag(e.target.value);
+                      e.target.value = "";
+                    }).bind(this)}
+                  />
+                </div>
+
                 <div className="tags-list">{tags}</div>
               </div>
             </TabPane>

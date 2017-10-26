@@ -12,8 +12,8 @@ function createWindow() {
             plugins: true,
             nodeIntegration: true
         },
-        resizable: false,
-        maximizable: false
+        resizable: true,
+        maximizable: true
     });
 
     // console.log(path.join($dirname, "/../"));

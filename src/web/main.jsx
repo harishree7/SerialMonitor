@@ -63,7 +63,8 @@ export default class MainUI extends React.Component {
           key={Math.random()}
           className={msg.received ? "message-received" : "message-sent"}
         >
-          @{msg.time.getTime()} : {msg.msg}
+          <Icon type={msg.received ? "arrow-down" : "arrow-up"} />
+          {msg.time.getTime()} : {msg.msg}
         </p>
       );
     }
@@ -94,7 +95,7 @@ export default class MainUI extends React.Component {
           <div ref="messages" className="messages-panel">
             {messages}
           </div>
-          <div className="messages-tool">
+          <div className="messages-hex">
             <Checkbox
               onChange={e => {
                 console.log(`checked = ${e.target.checked}`);
@@ -102,16 +103,14 @@ export default class MainUI extends React.Component {
             >
               Hex
             </Checkbox>
+          </div>
+          <div className="messages-clear">
             <Icon
               onClick={(e => {
                 this.state.messages = [];
                 this.forceUpdate();
               }).bind(this)}
-              style={{
-                fontSize: 24,
-                cursor: "pointer",
-                lineHeight: 18
-              }}
+              style={{}}
               type="delete"
             />
           </div>
@@ -159,11 +158,39 @@ export default class MainUI extends React.Component {
             </TabPane>
             <TabPane tab="多行模式" key="2">
               <div className="sender-tool">
-                <TextArea ref="send-message" rows={4} />
-
+                <div className="sender-control">
+                  <Button
+                    style={{ margin: "2px 0" }}
+                    type="primary"
+                    icon="plus"
+                  >
+                    浏览文件
+                  </Button>
+                  <Button
+                    style={{ margin: "2px 0" }}
+                    type="primary"
+                    icon="upload"
+                  >
+                    开始传送
+                  </Button>
+                  <Button
+                    style={{ margin: "2px 0" }}
+                    type="danger"
+                    icon="poweroff"
+                  >
+                    停止传送
+                  </Button>
+                </div>
+                <div className="sender-message">
+                  <TextArea
+                    ref="sender-message"
+                    rows={5}
+                    autosize={{ minRows: 5, maxRows: 5 }}
+                  />
+                </div>
                 <Select
                   defaultValue="0"
-                  style={{ width: 80 }}
+                  style={{ width: 80, margin: "2px 20px 2px 0" }}
                   onChange={(e => {
                     this.state.ending =
                       e == 0 ? "" : e == 1 ? "\r" : e == 2 ? "\n" : "\r\n";
@@ -174,18 +201,6 @@ export default class MainUI extends React.Component {
                   <Option value="2">\n</Option>
                   <Option value="3">\r\n</Option>
                 </Select>
-                <Button
-                  type="primary"
-                  size="large"
-                  shape="circle"
-                  icon="upload"
-                />
-                <Button
-                  type="danger"
-                  size="large"
-                  shape="circle"
-                  icon="poweroff"
-                />
                 <Checkbox
                   onChange={e => {
                     console.log(`checked = ${e.target.checked}`);
@@ -193,8 +208,13 @@ export default class MainUI extends React.Component {
                 >
                   定时
                 </Checkbox>
-
+                <Input
+                  style={{ width: 40, marginRight: 2 }}
+                  defaultValue={"1.0"}
+                  onChange={e => {}}
+                />秒
                 <Checkbox
+                  style={{ marginLeft: 20 }}
                   onChange={e => {
                     console.log(`checked = ${e.target.checked}`);
                   }}
@@ -202,12 +222,18 @@ export default class MainUI extends React.Component {
                   循环
                 </Checkbox>
                 <Checkbox
+                  style={{ marginLeft: 20 }}
                   onChange={e => {
                     console.log(`checked = ${e.target.checked}`);
                   }}
                 >
                   条件
                 </Checkbox>
+                <Input
+                  style={{ width: 80, marginRight: 2 }}
+                  defaultValue={"ok"}
+                  onChange={e => {}}
+                />
               </div>
             </TabPane>
             <TabPane tab="图形模式" key="3">

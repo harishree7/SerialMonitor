@@ -10,7 +10,7 @@ export default class MainUI extends React.Component {
   constructor(...args) {
     super(...args);
     this.state = {
-      ending: "",
+      ending: "\n",
       messages: [],
       tags: []
     };
@@ -19,25 +19,32 @@ export default class MainUI extends React.Component {
     this.refs.devices.setReceiver(this.onReceived.bind(this));
   }
   createNewTag(msg) {
-    this.state.tags.push(msg);
-    if (this.state.tags.length > 10) {
-      this.state.tags.shift();
+    if (this.state.tags.indexOf(msg) == -1) {
+      this.state.tags.push(msg);
+      if (this.state.tags.length > 10) {
+        this.state.tags.shift();
+      }
+      this.forceUpdate();
     }
-    this.forceUpdate();
   }
   sendMessage(msg) {
     if (msg.length > 0) {
       this.addMessage(msg, false);
+      this.refs.devices.sendMessage(msg + this.state.ending);
     }
   }
   addMessage(msg, received) {
-    this.state.messages.push({
-      time: new Date(),
-      msg: msg,
-      received: received
-    });
-    if (this.state.messages.length > 50) {
-      this.state.messages.shift();
+    var time = new Date();
+    var msgs = msg.split("\r\n");
+    for (var i = 0; i < msgs.length; i++) {
+      this.state.messages.push({
+        time: time,
+        msg: msgs[i],
+        received: received
+      });
+      if (this.state.messages.length > 50) {
+        this.state.messages.shift();
+      }
     }
     this.forceUpdate();
   }
@@ -56,7 +63,7 @@ export default class MainUI extends React.Component {
   }
   render() {
     var messages = [];
-    for (var i = 0; i < this.state.messages.length; i++) {
+    for (var i = this.state.messages.length - 1; i >= 0; i--) {
       var msg = this.state.messages[i];
       messages.push(
         <p
@@ -73,7 +80,7 @@ export default class MainUI extends React.Component {
       var tag = this.state.tags[i];
       tags.push(
         <Tag
-          key={tag}
+          key={tag + "-" + Math.random()}
           closable
           onClick={(e => {
             this.sendMessage(e.target.innerText);
@@ -128,16 +135,16 @@ export default class MainUI extends React.Component {
                     Hex
                   </Checkbox>
                   <Select
-                    defaultValue="0"
+                    defaultValue="1"
                     style={{ width: 80 }}
                     onChange={(e => {
                       this.state.ending =
-                        e == 0 ? "" : e == 1 ? "\r" : e == 2 ? "\n" : "\r\n";
+                        e == 0 ? "" : e == 1 ? "\n" : e == 2 ? "\r" : "\r\n";
                     }).bind(this)}
                   >
                     <Option value="0">无结束符</Option>
-                    <Option value="1">\r</Option>
-                    <Option value="2">\n</Option>
+                    <Option value="1">\n</Option>
+                    <Option value="2">\r</Option>
                     <Option value="3">\r\n</Option>
                   </Select>
                 </div>
@@ -189,16 +196,16 @@ export default class MainUI extends React.Component {
                   />
                 </div>
                 <Select
-                  defaultValue="0"
+                  defaultValue="1"
                   style={{ width: 80, margin: "2px 20px 2px 0" }}
                   onChange={(e => {
                     this.state.ending =
-                      e == 0 ? "" : e == 1 ? "\r" : e == 2 ? "\n" : "\r\n";
+                      e == 0 ? "" : e == 1 ? "\n" : e == 2 ? "\r" : "\r\n";
                   }).bind(this)}
                 >
                   <Option value="0">无结束符</Option>
-                  <Option value="1">\r</Option>
-                  <Option value="2">\n</Option>
+                  <Option value="1">\n</Option>
+                  <Option value="2">\r</Option>
                   <Option value="3">\r\n</Option>
                 </Select>
                 <Checkbox

@@ -16,12 +16,14 @@ function createWindow() {
         maximizable: true
     });
 
-    // console.log(path.join($dirname, "/../"));
+    console.log(path.join($dirname, "/../"));
     // and load the index.html of the app.
     mainWindow.loadURL(`file://${$dirname}/../web/index.html`);
     Menu.setApplicationMenu(null);
     // Open the DevTools.
-    mainWindow.webContents.openDevTools();
+    if (path.join($dirname, "/../").indexOf("src") > -1) {
+        mainWindow.webContents.openDevTools();
+    }
     mainWindow.on("closed", function() {
         mainWindow = null;
     });

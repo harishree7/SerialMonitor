@@ -2,9 +2,11 @@ import { Menu, Dropdown, Button, Icon, message } from "antd";
 import Serial from "serialport";
 import Promise from "promise";
 import React from "react";
+const Item = Menu.Item;
 export default class DeviceSelector extends React.Component {
   constructor(...args) {
     super(...args);
+    this.state = { serial: null };
     this.ports = [];
     this.currentIndex = -1;
     Serial.list(this.onSerialList.bind(this));
@@ -23,22 +25,28 @@ export default class DeviceSelector extends React.Component {
     Serial.list(this.onSerialList.bind(this));
   }
   connect() {
-    this.serial = new Serial(
+    const self = this;
+    this.state.serial = new Serial(
       this.ports[this.currentIndex].comName,
       { baudRate: 115200 },
       err => {
         console.log("connecting...", err);
+        if (self.state.serial.isOpen) {
+          self.state.serial.on("data", buffer => {
+            self.onReceived(buffer);
+          });
+        }
       }
     );
-    this.serial.on("data", this.onReceived.bind(this));
+    self.state.serial.on("open", () => {});
   }
   setReceiver(receiver) {
-    this.listener = receiver;
+    this.callback = receiver;
   }
   sendMessage(msg) {
     return new Promise(resolve => {
-      if (this.serial && this.serial.isOpen) {
-        this.serial.write(new Buffer(msg), (err, bytesWritten) => {
+      if (this.state.serial && this.state.serial.isOpen) {
+        this.state.serial.write(new Buffer(msg), (err, bytesWritten) => {
           resolve(bytesWritten);
         });
       } else {
@@ -47,18 +55,15 @@ export default class DeviceSelector extends React.Component {
     });
   }
   onReceived(buffer) {
-    var msg = buffer.toString();
-    var callback = this.listener;
-    if (callback) {
-      callback(buffer);
+    if (this.callback) {
+      this.callback(buffer);
     }
-    console.log("received:", msg);
   }
   handleMenuClick(e) {
     this.currentIndex = Number(e.key) < this.ports.length ? e.key : -1;
     if (this.currentIndex != -1) {
-      if (this.serial && this.serial.isOpen) {
-        this.serial.close(err => {
+      if (this.state.serial && this.state.serial.isOpen) {
+        this.state.serial.close(err => {
           console.log("closing..", err);
           this.connect();
         });
@@ -66,8 +71,8 @@ export default class DeviceSelector extends React.Component {
         this.connect();
       }
     } else {
-      if (this.serial) {
-        this.serial.close(err => {
+      if (this.state.serial) {
+        this.state.serial.close(err => {
           console.log("closing..", err);
         });
       }
@@ -80,16 +85,32 @@ export default class DeviceSelector extends React.Component {
     }
     var items = [];
     for (var i = 0; i < this.ports.length; i++) {
-      items.push(<Menu.Item key={i}>{this.ports[i].comName}</Menu.Item>);
+      items.push(
+        <Item ref={i} key={i}>
+          {this.ports[i].comName}
+        </Item>
+      );
     }
-    if (this.ports.length > 0) {
-      items.push(<Menu.Item key={this.ports.length}>{"Disconnect"}</Menu.Item>);
+    if (
+      this.ports.length > 0 &&
+      this.state.serial &&
+      this.state.serial.isOpen
+    ) {
+      items.push(
+        <Item ref={this.ports.length} key={this.ports.length}>
+          {"Disconnect"}
+        </Item>
+      );
     }
-    const menu = <Menu onClick={this.handleMenuClick.bind(this)}>{items}</Menu>;
+    const menu = (
+      <Menu ref="menu" onClick={this.handleMenuClick.bind(this)}>
+        {items}
+      </Menu>
+    );
     return (
-      <div className="devices-list">
+      <div ref="list" className="devices-list">
         <Dropdown
-          ref="menu"
+          ref="drop"
           overlay={menu}
           trigger={["click"]}
           size={"large"}

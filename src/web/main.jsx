@@ -61,9 +61,8 @@ export default class MainUI extends React.Component {
             );
           }
         } else {
-          if (this.state.needLoop) {
-            this.state.sendingIndex = 0;
-          } else {
+          this.state.sendingIndex = 0;
+          if (!this.state.needLoop) {
             this.setState({ sending: false });
           }
         }

@@ -20,7 +20,8 @@ export default class MainUI extends React.Component {
       needCondition: false,
       needInterval: false,
       needLoop: false,
-      condition: "ok"
+      condition: "ok",
+      messagesCountMax: 300
     };
   }
   componentDidMount() {
@@ -48,9 +49,8 @@ export default class MainUI extends React.Component {
           this.sendMessage(this.state.senders[this.state.sendingIndex]);
           this.state.sendingIndex++;
           if (this.state.sendingIndex >= this.state.senders.length) {
-            if (this.state.needLoop) {
-              this.state.sendingIndex = 0;
-            } else {
+            this.state.sendingIndex = 0;
+            if (!this.state.needLoop) {
               this.setState({ sending: false });
             }
           }
@@ -78,7 +78,7 @@ export default class MainUI extends React.Component {
         msg: msgs[i],
         received: received
       });
-      if (this.state.messages.length > 50) {
+      if (this.state.messages.length > this.state.messagesCountMax) {
         this.state.messages.shift();
       }
     }

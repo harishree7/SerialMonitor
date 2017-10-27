@@ -12,7 +12,15 @@ export default class MainUI extends React.Component {
     this.state = {
       ending: "\n",
       messages: [],
-      tags: []
+      tags: [],
+      senders: [],
+      sendingIndex: 0,
+      sending: false,
+      sendingMode: 1,
+      needCondition: false,
+      needInterval: false,
+      needLoop: false,
+      condition: "ok"
     };
   }
   componentDidMount() {
@@ -33,6 +41,35 @@ export default class MainUI extends React.Component {
       this.refs.devices.sendMessage(msg + this.state.ending);
     }
   }
+  sendNextMessage() {
+    if (this.state.sendingMode == 2) {
+      if (this.state.sending) {
+        if (this.state.sendingIndex < this.state.senders.length) {
+          this.sendMessage(this.state.senders[this.state.sendingIndex]);
+          this.state.sendingIndex++;
+          if (this.state.sendingIndex >= this.state.senders.length) {
+            if (this.state.needLoop) {
+              this.state.sendingIndex = 0;
+            } else {
+              this.setState({ sending: false });
+            }
+          }
+          if (this.state.needInterval) {
+            setTimeout(
+              this.sendNextMessage.bind(this),
+              this.state.interval * 1000
+            );
+          }
+        } else {
+          if (this.state.needLoop) {
+            this.state.sendingIndex = 0;
+          } else {
+            this.setState({ sending: false });
+          }
+        }
+      }
+    }
+  }
   addMessage(msg, received) {
     var time = new Date();
     var msgs = msg.split("\r\n");
@@ -49,7 +86,15 @@ export default class MainUI extends React.Component {
     this.forceUpdate();
   }
   onReceived(buffer) {
-    this.addMessage(buffer.toString(), true);
+    var msg = buffer.toString();
+    this.addMessage(msg, true);
+    if (this.state.sendingMode == 2) {
+      if (this.state.needCondition) {
+        if (msg.indexOf(this.state.condition) > -1) {
+          this.sendNextMessage();
+        }
+      }
+    }
   }
   handleCloseTag(removedTag) {
     const tags = this.state.tags.concat([]);
@@ -62,6 +107,7 @@ export default class MainUI extends React.Component {
     this.forceUpdate();
   }
   render() {
+    const self = this;
     var messages = [];
     for (var i = this.state.messages.length - 1; i >= 0; i--) {
       var msg = this.state.messages[i];
@@ -123,7 +169,12 @@ export default class MainUI extends React.Component {
           </div>
         </div>
         <div className="sender">
-          <Tabs defaultActiveKey="1" onChange={() => {}}>
+          <Tabs
+            defaultActiveKey="1"
+            onChange={e => {
+              self.state.sendingMode = e * 1.0;
+            }}
+          >
             <TabPane tab="单行模式" key="1">
               <div className="sender-tool">
                 <div style={{ float: "left", width: 140 }}>
@@ -170,29 +221,64 @@ export default class MainUI extends React.Component {
                     style={{ margin: "2px 0" }}
                     type="primary"
                     icon="plus"
+                    onClick={() => {
+                      $("#files").click();
+                    }}
                   >
                     浏览文件
                   </Button>
+                  <input
+                    type="file"
+                    id="files"
+                    style={{ display: "none" }}
+                    onChange={e => {
+                      var selectedFile = e.target.files[0];
+                      var name = selectedFile.name;
+                      var size = selectedFile.size;
+                      var reader = new FileReader();
+                      reader.readAsText(selectedFile);
+                      reader.onload = e => {
+                        self.state.senders = e.target.result.split("\n");
+                        $("#sender-message").val(self.state.senders.join("\n"));
+                      };
+                    }}
+                  />
                   <Button
                     style={{ margin: "2px 0" }}
                     type="primary"
-                    icon="upload"
+                    icon={self.state.sending ? "pause" : "upload"}
+                    onClick={e => {
+                      var sending = !self.state.sending;
+                      self.setState({ sending: sending });
+                      if (sending) {
+                        setTimeout(self.sendNextMessage.bind(self), 200);
+                      }
+                    }}
                   >
-                    开始传送
+                    {self.state.sending ? "暂停传送" : "开始传送"}
                   </Button>
                   <Button
                     style={{ margin: "2px 0" }}
                     type="danger"
                     icon="poweroff"
+                    onClick={e => {
+                      self.setState({ sending: false });
+                      self.state.sendingIndex = 0;
+                    }}
                   >
                     停止传送
                   </Button>
                 </div>
                 <div className="sender-message">
                   <TextArea
+                    id="sender-message"
                     ref="sender-message"
                     rows={5}
                     autosize={{ minRows: 5, maxRows: 5 }}
+                    defaultValue=""
+                    onChange={e => {
+                      self.state.senders = e.target.value.split("\n");
+                    }}
                   />
                 </div>
                 <Select
@@ -210,28 +296,42 @@ export default class MainUI extends React.Component {
                 </Select>
                 <Checkbox
                   onChange={e => {
-                    console.log(`checked = ${e.target.checked}`);
+                    self.state.needInterval = e.target.checked;
                   }}
+                  defaultChecked={self.state.needInterval}
                 >
                   定时
                 </Checkbox>
                 <Input
+                  id="interval"
                   style={{ width: 40, marginRight: 2 }}
-                  defaultValue={"1.0"}
-                  onChange={e => {}}
+                  defaultValue={"0.5"}
+                  onChange={e => {
+                    $("#interval").val(
+                      isNaN(Number(e.target.value))
+                        ? "0.5"
+                        : "" + e.target.value * 1.0
+                    );
+                    console.log(e.target.value);
+                    self.state.interval = isNaN(Number(e.target.value))
+                      ? 0.5
+                      : e.target.value * 1.0;
+                  }}
                 />秒
                 <Checkbox
                   style={{ marginLeft: 20 }}
+                  defaultChecked={self.state.needLoop}
                   onChange={e => {
-                    console.log(`checked = ${e.target.checked}`);
+                    self.state.needLoop = e.target.checked;
                   }}
                 >
                   循环
                 </Checkbox>
                 <Checkbox
                   style={{ marginLeft: 20 }}
+                  defaultChecked={self.state.needCondition}
                   onChange={e => {
-                    console.log(`checked = ${e.target.checked}`);
+                    self.state.needCondition = e.target.checked;
                   }}
                 >
                   条件
@@ -239,7 +339,9 @@ export default class MainUI extends React.Component {
                 <Input
                   style={{ width: 80, marginRight: 2 }}
                   defaultValue={"ok"}
-                  onChange={e => {}}
+                  onChange={e => {
+                    self.state.condition = e.target.value;
+                  }}
                 />
               </div>
             </TabPane>

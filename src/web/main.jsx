@@ -21,7 +21,8 @@ export default class MainUI extends React.Component {
       needInterval: false,
       needLoop: false,
       condition: "ok",
-      messagesCountMax: 300
+      messagesCountMax: 300,
+      received: ""
     };
   }
   componentDidMount() {
@@ -40,6 +41,7 @@ export default class MainUI extends React.Component {
     if (msg.length > 0) {
       this.addMessage(msg, false);
       this.refs.devices.sendMessage(msg + this.state.ending);
+      this.forceUpdate();
     }
   }
   sendNextMessage() {
@@ -82,17 +84,31 @@ export default class MainUI extends React.Component {
         this.state.messages.shift();
       }
     }
-    this.forceUpdate();
   }
   onReceived(buffer) {
-    var msg = buffer.toString();
-    this.addMessage(msg, true);
-    if (this.state.sendingMode == 2) {
-      if (this.state.needCondition) {
-        if (msg.indexOf(this.state.condition) > -1) {
-          this.sendNextMessage();
+    var msg = buffer
+      .toString()
+      .split("\r")
+      .join("");
+    if (msg && msg.indexOf("\n") > -1) {
+      this.state.received += msg;
+      var arr = this.state.received.split("\n");
+      if (arr.length > 1) {
+        for (var i = 0; i < arr.length - 1; i++) {
+          this.addMessage(arr[i], true);
+          if (this.state.sendingMode == 2) {
+            if (this.state.needCondition) {
+              if (msg.indexOf(this.state.condition) > -1) {
+                this.sendNextMessage();
+              }
+            }
+          }
         }
+        this.state.received = arr[arr.length - 1];
+        this.forceUpdate();
       }
+    } else if (msg) {
+      this.state.received += msg;
     }
   }
   handleCloseTag(removedTag) {

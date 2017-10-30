@@ -247,15 +247,20 @@ export default class MainUI extends React.Component {
                     id="files"
                     style={{ display: "none" }}
                     onChange={e => {
-                      var selectedFile = e.target.files[0];
-                      var name = selectedFile.name;
-                      var size = selectedFile.size;
-                      var reader = new FileReader();
-                      reader.readAsText(selectedFile);
-                      reader.onload = e => {
-                        self.state.senders = e.target.result.split("\n");
-                        $("#sender-message").val(self.state.senders.join("\n"));
-                      };
+                      if (e.target.files) {
+                        var selectedFile = e.target.files[0];
+                        var name = selectedFile.name;
+                        var size = selectedFile.size;
+                        var reader = new FileReader();
+                        reader.readAsText(selectedFile);
+                        reader.onload = e => {
+                          self.state.senders = e.target.result.split("\n");
+                          $("#sender-message").val(
+                            self.state.senders.join("\n")
+                          );
+                          $("#files").val("");
+                        };
+                      }
                     }}
                   />
                   <Button

@@ -7,6 +7,8 @@ const { TextArea } = Input;
 const { TabPane } = Tabs;
 const { Option } = Select;
 import DeviceSelector from "./components/devices.jsx";
+import History from "./components/history.jsx";
+import Messages from "./components/messages.jsx";
 import "./styles/style.scss";
 export default class MainUI extends React.Component {
   constructor(...args) {
@@ -20,8 +22,6 @@ export default class MainUI extends React.Component {
     );
     this.state = {
       ending: "\n",
-      messages: [],
-      tags: [],
       senders: [],
       sendingIndex: 0,
       sending: false,
@@ -30,7 +30,6 @@ export default class MainUI extends React.Component {
       needInterval: false,
       needLoop: false,
       condition: "ok",
-      messagesCountMax: 300,
       received: ""
     };
     // var transformed = svgpath("m 10,10 c 15,5 20,5 25,10")
@@ -45,21 +44,11 @@ export default class MainUI extends React.Component {
   componentDidMount() {
     this.refs.devices.setReceiver(this.onReceived.bind(this));
   }
-  createNewTag(msg) {
-    if (this.state.tags.indexOf(msg) == -1) {
-      this.state.tags.push(msg);
-      if (this.state.tags.length > 10) {
-        this.state.tags.shift();
-      }
-      localforage.setItem("tags", this.state.tags);
-      this.forceUpdate();
-    }
-  }
   sendMessage(msg) {
     if (msg.length > 0) {
-      this.addMessage(msg, false);
+      this.refs.messages.addMessage(msg, false);
       this.refs.devices.sendMessage(msg + this.state.ending);
-      this.forceUpdate();
+      this.refs.messages.forceUpdate();
     }
   }
   sendNextMessage() {
@@ -89,20 +78,6 @@ export default class MainUI extends React.Component {
       }
     }
   }
-  addMessage(msg, received) {
-    var time = new Date();
-    var msgs = msg.split("\r\n");
-    for (var i = 0; i < msgs.length; i++) {
-      this.state.messages.push({
-        time: time,
-        msg: msgs[i],
-        received: received
-      });
-      if (this.state.messages.length > this.state.messagesCountMax) {
-        this.state.messages.shift();
-      }
-    }
-  }
   onReceived(buffer) {
     var msg = buffer
       .toString()
@@ -113,7 +88,7 @@ export default class MainUI extends React.Component {
       var arr = this.state.received.split("\n");
       if (arr.length > 1) {
         for (var i = 0; i < arr.length - 1; i++) {
-          this.addMessage(arr[i], true);
+          this.refs.messages.addMessage(arr[i], true);
           if (this.state.sendingMode == 2) {
             if (this.state.needCondition) {
               if (msg.indexOf(this.state.condition) > -1) {
@@ -123,55 +98,14 @@ export default class MainUI extends React.Component {
           }
         }
         this.state.received = arr[arr.length - 1];
-        this.forceUpdate();
+        this.refs.messages.forceUpdate();
       }
     } else if (msg) {
       this.state.received += msg;
     }
   }
-  handleCloseTag(removedTag) {
-    const tags = this.state.tags.concat([]);
-    for (var i = 0; i < tags.length; i++) {
-      if (tags[i] == removedTag) {
-        this.state.tags.splice(i, 1);
-        break;
-      }
-    }
-    localforage.setItem("tags", this.state.tags);
-  }
   render() {
     const self = this;
-    var messages = [];
-    for (var i = this.state.messages.length - 1; i >= 0; i--) {
-      var msg = this.state.messages[i];
-      messages.push(
-        <p
-          key={Math.random()}
-          className={msg.received ? "message-received" : "message-sent"}
-        >
-          <Icon type={msg.received ? "arrow-down" : "arrow-up"} />
-          {msg.time.getTime()} : {msg.msg}
-        </p>
-      );
-    }
-    var tags = [];
-    for (var i = this.state.tags.length - 1; i >= 0; i--) {
-      const tag = this.state.tags[i];
-      tags.push(
-        <Tag
-          key={tag + "-" + Math.random()}
-          closable
-          onClick={(e => {
-            this.sendMessage(e.target.innerText);
-          }).bind(this)}
-          afterClose={() => {
-            this.handleCloseTag(tag);
-          }}
-        >
-          {tag}
-        </Tag>
-      );
-    }
     return (
       <div className="content">
         <div className="nav">
@@ -180,9 +114,7 @@ export default class MainUI extends React.Component {
           </div>
         </div>
         <div className="messages">
-          <div ref="messages" className="messages-panel">
-            {messages}
-          </div>
+          <Messages ref="messages" />
           <div className="messages-hex">
             <Checkbox
               onChange={e => {
@@ -196,7 +128,7 @@ export default class MainUI extends React.Component {
             <Icon
               onClick={(e => {
                 this.state.messages = [];
-                this.forceUpdate();
+                this.refs.messages.forceUpdate();
               }).bind(this)}
               style={{}}
               type="delete"
@@ -240,13 +172,17 @@ export default class MainUI extends React.Component {
                     placeholder="发送的字符串"
                     onPressEnter={(e => {
                       this.sendMessage(e.target.value);
-                      this.createNewTag(e.target.value);
+                      this.refs.history.createNewTag(e.target.value);
                       e.target.value = "";
                     }).bind(this)}
                   />
                 </div>
-
-                <div className="tags-list">{tags}</div>
+                <History
+                  ref="history"
+                  sendTag={(tag => {
+                    this.sendMessage(tag);
+                  }).bind(this)}
+                />
               </div>
             </TabPane>
             <TabPane tab="多行模式" key="2">

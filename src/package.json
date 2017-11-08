@@ -26,9 +26,11 @@
     "homepage": "https://github.com/xeecos/SerialMonitor#readme",
     "dependencies": {
         "antd": "^2.13.7",
+        "localforage": "^1.5.3",
         "react": "^16.0.0",
         "react-dom": "^16.0.0",
-        "serialport": "^6.0.4"
+        "serialport": "^6.0.4",
+        "svgpath": "^2.2.1"
     },
     "devDependencies": {
         "babel-core": "^6.26.0",

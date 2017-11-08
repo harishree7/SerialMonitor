@@ -23,16 +23,22 @@
             "app": "../src"
         },
         "win": {
-            "target": [{
-                "target": "nsis",
-                "arch": ["x64"]
-            }]
+            "target": [
+                {
+                    "target": "nsis",
+                    "arch": [
+                        "x64"
+                    ]
+                }
+            ]
         },
         "mac": {
             "category": "public.app-category.developer-tools",
-            "target": [{
-                "target": "dmg"
-            }]
+            "target": [
+                {
+                    "target": "dmg"
+                }
+            ]
         },
         "linux": {
             "target": "deb",
@@ -51,7 +57,10 @@
         "type": "git",
         "url": "https://github.com/xeecos/SerialMonitor"
     },
-    "keywords": ["serial", "cnc"],
+    "keywords": [
+        "serial",
+        "cnc"
+    ],
     "license": "MIT",
     "dependencies": {},
     "devDependencies": {

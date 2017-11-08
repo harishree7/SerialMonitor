@@ -1,5 +1,7 @@
 import React from "react";
 import $ from "jquery";
+import svgpath from "svgpath";
+import localforage from "localforage";
 import { Icon, Input, Button, Checkbox, Tabs, Select, Tag } from "antd";
 const { TextArea } = Input;
 const { TabPane } = Tabs;
@@ -9,6 +11,13 @@ import "./styles/style.scss";
 export default class MainUI extends React.Component {
   constructor(...args) {
     super(...args);
+    localforage.getItem("tags").then(
+      (r => {
+        if (r) {
+          this.setState({ tags: r });
+        }
+      }).bind(this)
+    );
     this.state = {
       ending: "\n",
       messages: [],
@@ -17,13 +26,21 @@ export default class MainUI extends React.Component {
       sendingIndex: 0,
       sending: false,
       sendingMode: 1,
-      needCondition: false,
+      needCondition: true,
       needInterval: false,
       needLoop: false,
       condition: "ok",
       messagesCountMax: 300,
       received: ""
     };
+    // var transformed = svgpath("m 10,10 c 15,5 20,5 25,10")
+    //   .scale(0.5)
+    //   .rotate(10, 10, 10)
+    //   .translate(100, 200)
+    //   .rel()
+    //   .round(1)
+    //   .toString();
+    // console.log(transformed);
   }
   componentDidMount() {
     this.refs.devices.setReceiver(this.onReceived.bind(this));
@@ -34,6 +51,7 @@ export default class MainUI extends React.Component {
       if (this.state.tags.length > 10) {
         this.state.tags.shift();
       }
+      localforage.setItem("tags", this.state.tags);
       this.forceUpdate();
     }
   }
@@ -114,12 +132,12 @@ export default class MainUI extends React.Component {
   handleCloseTag(removedTag) {
     const tags = this.state.tags.concat([]);
     for (var i = 0; i < tags.length; i++) {
-      if (tags[i] === removedTag) {
-        this.state.tags.slice(i, 1);
+      if (tags[i] == removedTag) {
+        this.state.tags.splice(i, 1);
         break;
       }
     }
-    this.forceUpdate();
+    localforage.setItem("tags", this.state.tags);
   }
   render() {
     const self = this;
@@ -138,7 +156,7 @@ export default class MainUI extends React.Component {
     }
     var tags = [];
     for (var i = this.state.tags.length - 1; i >= 0; i--) {
-      var tag = this.state.tags[i];
+      const tag = this.state.tags[i];
       tags.push(
         <Tag
           key={tag + "-" + Math.random()}
@@ -146,7 +164,9 @@ export default class MainUI extends React.Component {
           onClick={(e => {
             this.sendMessage(e.target.innerText);
           }).bind(this)}
-          onClose={() => this.handleCloseTag(tag)}
+          afterClose={() => {
+            this.handleCloseTag(tag);
+          }}
         >
           {tag}
         </Tag>
@@ -254,6 +274,9 @@ export default class MainUI extends React.Component {
                         var reader = new FileReader();
                         reader.readAsText(selectedFile);
                         reader.onload = e => {
+                          if (name.indexOf(".svg") > -1) {
+                            console.log(e.target.result);
+                          }
                           self.state.senders = e.target.result.split("\n");
                           $("#sender-message").val(
                             self.state.senders.join("\n")

@@ -8,6 +8,13 @@ export default class History extends React.Component {
     this.state = {
       tags: []
     };
+    localforage.getItem("tags").then(
+      (r => {
+        if (r) {
+          this.setState({ tags: r });
+        }
+      }).bind(this)
+    );
   }
   createNewTag(msg) {
     if (this.state.tags.indexOf(msg) == -1) {

@@ -1,6 +1,5 @@
 import React from "react";
 import $ from "jquery";
-import svgpath from "svgpath";
 import localforage from "localforage";
 import { Icon, Input, Button, Checkbox, Tabs, Select, Tag } from "antd";
 const { TextArea } = Input;
@@ -13,13 +12,6 @@ import "./styles/style.scss";
 export default class MainUI extends React.Component {
   constructor(...args) {
     super(...args);
-    localforage.getItem("tags").then(
-      (r => {
-        if (r) {
-          this.setState({ tags: r });
-        }
-      }).bind(this)
-    );
     this.state = {
       ending: "\n",
       senders: [],
@@ -32,14 +24,6 @@ export default class MainUI extends React.Component {
       condition: "ok",
       received: ""
     };
-    // var transformed = svgpath("m 10,10 c 15,5 20,5 25,10")
-    //   .scale(0.5)
-    //   .rotate(10, 10, 10)
-    //   .translate(100, 200)
-    //   .rel()
-    //   .round(1)
-    //   .toString();
-    // console.log(transformed);
   }
   componentDidMount() {
     this.refs.devices.setReceiver(this.onReceived.bind(this));
@@ -127,8 +111,7 @@ export default class MainUI extends React.Component {
           <div className="messages-clear">
             <Icon
               onClick={(e => {
-                this.state.messages = [];
-                this.refs.messages.forceUpdate();
+                this.refs.messages.clearMessages();
               }).bind(this)}
               style={{}}
               type="delete"

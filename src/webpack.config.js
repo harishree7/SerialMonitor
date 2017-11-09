@@ -58,6 +58,10 @@ module.exports = [{
                 {
                     test: /\.node$/,
                     loader: "node-loader"
+                },
+                {
+                    test: require.resolve("snapsvg"),
+                    loader: "imports-loader?this=>window,fix=>module.exports=0"
                 }
             ]
         },

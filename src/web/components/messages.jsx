@@ -22,6 +22,9 @@ export default class Messages extends React.Component {
       }
     }
   }
+  clearMessages() {
+    this.setState({ messages: [] });
+  }
   render() {
     var messages = [];
     for (var i = this.state.messages.length - 1; i >= 0; i--) {

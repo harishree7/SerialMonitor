@@ -28,7 +28,7 @@ export default class DeviceSelector extends React.Component {
     const self = this;
     this.state.serial = new Serial(
       this.ports[this.currentIndex].comName,
-      { baudRate: 115200 },
+      { baudRate: 250000 },
       err => {
         console.log("connecting...", err);
         if (self.state.serial.isOpen) {

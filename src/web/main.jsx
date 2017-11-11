@@ -8,6 +8,7 @@ const { Option } = Select;
 import DeviceSelector from "./components/devices.jsx";
 import History from "./components/history.jsx";
 import Messages from "./components/messages.jsx";
+import CNC from "./utils/cnc";
 import "./styles/style.scss";
 export default class MainUI extends React.Component {
   constructor(...args) {
@@ -18,24 +19,39 @@ export default class MainUI extends React.Component {
       sendingIndex: 0,
       sending: false,
       sendingMode: 1,
-      needCondition: true,
-      needInterval: false,
+      needCondition: false,
+      needInterval: true,
       needLoop: false,
       condition: "ok",
       received: ""
     };
+    this.busy = false;
+    new CNC();
   }
   componentDidMount() {
     this.refs.devices.setReceiver(this.onReceived.bind(this));
   }
   sendMessage(msg) {
-    if (msg.length > 0) {
+    if (msg.length > 0 && !this.busy) {
       this.refs.messages.addMessage(msg, false);
+      this.busy = true;
+      // if (msg.length > 5) {
+      //   for (var i = 0; i < msg.length; i += 5) {
+      //     this.refs.devices.sendMessage(
+      //       msg.substr(i, msg.length - i < 5 ? msg.length - i : 5)
+      //     );
+      //   }
+      //   this.refs.devices.sendMessage(this.state.ending);
+      // } else {
       this.refs.devices.sendMessage(msg + this.state.ending);
+      // }
+      this.busy = false;
       this.refs.messages.forceUpdate();
+    } else {
+      console.log(msg);
     }
   }
-  sendNextMessage() {
+  sendNextMessage(isBusy) {
     if (this.state.sendingMode == 2) {
       if (this.state.sending) {
         if (this.state.sendingIndex < this.state.senders.length) {
@@ -72,11 +88,28 @@ export default class MainUI extends React.Component {
       var arr = this.state.received.split("\n");
       if (arr.length > 1) {
         for (var i = 0; i < arr.length - 1; i++) {
+          if (arr[i].indexOf("ok:") > -1) {
+            try {
+              if (arr[i].split("ok:")[1] * 1 < 10) {
+                $("#interval").val(
+                  Math.max(0.001, $("#interval").val() * 1 - 0.006)
+                );
+              } else {
+                $("#interval").val(
+                  Math.min(0.4, $("#interval").val() * 1 + 0.01)
+                );
+              }
+              this.state.interval = isNaN(Number($("#interval").val()))
+                ? 0.1
+                : $("#interval").val() * 1.0;
+            } catch (e) {}
+          }
           this.refs.messages.addMessage(arr[i], true);
           if (this.state.sendingMode == 2) {
             if (this.state.needCondition) {
               if (msg.indexOf(this.state.condition) > -1) {
-                this.sendNextMessage();
+                var rest = msg.split(":")[1] * 1;
+                this.sendNextMessage(rest > 90);
               }
             }
           }
@@ -194,12 +227,14 @@ export default class MainUI extends React.Component {
                         reader.readAsText(selectedFile);
                         reader.onload = e => {
                           if (name.indexOf(".svg") > -1) {
-                            console.log(e.target.result);
+                            // console.log(e.target.result);
                           }
                           self.state.senders = e.target.result.split("\n");
-                          $("#sender-message").val(
-                            self.state.senders.join("\n")
-                          );
+                          if (size < 100000) {
+                            $("#sender-message").val(
+                              self.state.senders.join("\n")
+                            );
+                          }
                           $("#files").val("");
                         };
                       }
@@ -267,16 +302,15 @@ export default class MainUI extends React.Component {
                 <Input
                   id="interval"
                   style={{ width: 40, marginRight: 2 }}
-                  defaultValue={"0.5"}
+                  defaultValue={"0.1"}
                   onChange={e => {
                     $("#interval").val(
                       isNaN(Number(e.target.value))
-                        ? "0.5"
+                        ? "0.1"
                         : "" + e.target.value * 1.0
                     );
-                    console.log(e.target.value);
                     self.state.interval = isNaN(Number(e.target.value))
-                      ? 0.5
+                      ? 0.1
                       : e.target.value * 1.0;
                   }}
                 />秒

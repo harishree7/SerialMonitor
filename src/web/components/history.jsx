@@ -19,7 +19,7 @@ export default class History extends React.Component {
   createNewTag(msg) {
     if (this.state.tags.indexOf(msg) == -1) {
       this.state.tags.push(msg);
-      if (this.state.tags.length > 10) {
+      if (this.state.tags.length > 30) {
         this.state.tags.shift();
       }
       localforage.setItem("tags", this.state.tags);

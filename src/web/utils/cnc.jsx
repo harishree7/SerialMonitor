@@ -5,7 +5,8 @@ import fs from "fs";
 export default class CNC {
   constructor() {
     this.svgReader = new SVGReader();
-
+    // console.log(this.toCNC());
+    return;
     getPixels("./bundle/web/assets/test.jpg", (err, pixels) => {
       if (err) {
         console.log("Bad image path");
@@ -99,7 +100,7 @@ export default class CNC {
             " p0\n";
         } else {
           if (j == 1) {
-            power = " p20";
+            power = " p200";
           } else {
             power = "";
           }

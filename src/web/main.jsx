@@ -19,8 +19,8 @@ export default class MainUI extends React.Component {
       sendingIndex: 0,
       sending: false,
       sendingMode: 1,
-      needCondition: false,
-      needInterval: true,
+      needCondition: true,
+      needInterval: false,
       needLoop: false,
       condition: "ok",
       received: ""
@@ -90,13 +90,13 @@ export default class MainUI extends React.Component {
         for (var i = 0; i < arr.length - 1; i++) {
           if (arr[i].indexOf("ok:") > -1) {
             try {
-              if (arr[i].split("ok:")[1] * 1 < 10) {
+              if (arr[i].split("ok:")[1] * 1 < 5) {
                 $("#interval").val(
-                  Math.max(0.001, $("#interval").val() * 1 - 0.006)
+                  Math.max(0.01, $("#interval").val() * 1 - 0.01)
                 );
               } else {
                 $("#interval").val(
-                  Math.min(0.4, $("#interval").val() * 1 + 0.01)
+                  Math.min(0.8, $("#interval").val() * 1 + 0.01)
                 );
               }
               this.state.interval = isNaN(Number($("#interval").val()))
@@ -302,11 +302,11 @@ export default class MainUI extends React.Component {
                 <Input
                   id="interval"
                   style={{ width: 40, marginRight: 2 }}
-                  defaultValue={"0.1"}
+                  defaultValue={"0.8"}
                   onChange={e => {
                     $("#interval").val(
                       isNaN(Number(e.target.value))
-                        ? "0.1"
+                        ? "0.8"
                         : "" + e.target.value * 1.0
                     );
                     self.state.interval = isNaN(Number(e.target.value))

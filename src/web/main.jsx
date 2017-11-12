@@ -227,14 +227,23 @@ export default class MainUI extends React.Component {
                         reader.readAsText(selectedFile);
                         reader.onload = e => {
                           if (name.indexOf(".svg") > -1) {
-                            // console.log(e.target.result);
+                            var gcode = new CNC();
+                            var result = gcode.toCNC(e.target.result);
+                            self.state.senders = result.split("\n");
+                            if (result.length < 100000) {
+                              $("#sender-message").val(
+                                self.state.senders.join("\n")
+                              );
+                            }
+                          } else {
+                            self.state.senders = e.target.result.split("\n");
+                            if (size < 100000) {
+                              $("#sender-message").val(
+                                self.state.senders.join("\n")
+                              );
+                            }
                           }
-                          self.state.senders = e.target.result.split("\n");
-                          if (size < 100000) {
-                            $("#sender-message").val(
-                              self.state.senders.join("\n")
-                            );
-                          }
+
                           $("#files").val("");
                         };
                       }

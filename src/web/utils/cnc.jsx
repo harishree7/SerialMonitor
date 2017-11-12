@@ -80,11 +80,11 @@ export default class CNC {
     });
   }
 
-  toCNC() {
-    const svg = $("#drawing")
-      .html()
-      .trim();
-    return this.parsePath(this.svgReader.parse(svg, {}).allcolors);
+  toCNC(svg) {
+    var gcode = this.parsePath(this.svgReader.parse(svg.trim(), {}).allcolors);
+
+    fs.writeFileSync("./bundle/web/assets/gcode.txt", gcode);
+    return gcode;
   }
   parsePath(paths) {
     var output = "";

@@ -224,7 +224,17 @@ export default class MainUI extends React.Component {
                         var name = selectedFile.name;
                         var size = selectedFile.size;
                         var reader = new FileReader();
-                        reader.readAsText(selectedFile);
+
+                        // var blob = new Blob([data], {
+                        //   type: "image/" + name.split(".")[1]
+                        // });
+                        var isBitmap =
+                          name.indexOf(".bmp") > -1 ||
+                          name.indexOf(".jpg") > -1 ||
+                          name.indexOf(".png") > -1;
+                        isBitmap
+                          ? reader.readAsDataURL(selectedFile)
+                          : reader.readAsText(selectedFile);
                         reader.onload = e => {
                           if (name.indexOf(".svg") > -1) {
                             var gcode = new CNC();
@@ -235,6 +245,9 @@ export default class MainUI extends React.Component {
                                 self.state.senders.join("\n")
                               );
                             }
+                          } else if (isBitmap) {
+                            var gcode = new CNC();
+                            var result = gcode.toVoronoi(e.target.result);
                           } else {
                             self.state.senders = e.target.result.split("\n");
                             if (size < 100000) {

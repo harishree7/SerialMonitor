@@ -64,7 +64,7 @@ export default class CNC {
 
         var sites = [];
         var r, g, b, index, gray;
-        var dw = Math.max(6, Math.round(Math.min(w, h) / 120));
+        var dw = 8; //Math.max(2, Math.round(Math.min(w, h) / 120));
         dw += dw % 2;
         var grayMax = 0;
         var grayMin = 255;
@@ -86,8 +86,8 @@ export default class CNC {
             points[points.length - 1].push(gray);
           }
         }
-        var scale = 2;
-        grayMin += 40;
+        var scale = 8;
+        // grayMin += 40;
         for (var j = 0; j < points.length; j++) {
           // var d = [j == 0 ? "M" : "L", j % 2 ? points[j].length - 1 : 0, j];
           for (var i = 1; i < points[j].length; i++) {

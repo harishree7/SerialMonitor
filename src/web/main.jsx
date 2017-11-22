@@ -247,7 +247,9 @@ export default class MainUI extends React.Component {
                             }
                           } else if (isBitmap) {
                             var gcode = new CNC();
-                            var result = gcode.toVoronoi(e.target.result);
+                            gcode.toHalfTone(e.target.result).then(result => {
+                              console.log(result);
+                            });
                           } else {
                             self.state.senders = e.target.result.split("\n");
                             if (size < 100000) {

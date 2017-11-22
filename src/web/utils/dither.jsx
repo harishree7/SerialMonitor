@@ -20,7 +20,7 @@ export default class Dither {
 
   // int r, int g, int b, int[][] palette, int paletteLength
   getClosestPaletteColorIndex(r, g, b, palette, paletteLength) {
-    var minDistance = 195076;
+    var minDistance = 0xffff;
     var diffR, diffG, diffB;
     var distanceSquared;
     var bestIndex = 0;
@@ -39,7 +39,6 @@ export default class Dither {
         minDistance = distanceSquared;
       }
     }
-
     return bestIndex;
   }
 
@@ -50,7 +49,7 @@ export default class Dither {
     var r, g, b;
     var pixel, threshold, index;
     var paletteLength = palette.length;
-    var matrix = bayerMatrix8x8;
+    var matrix = this.bayerMatrix8x8;
     var indexedPixels = new Uint8Array(width * height);
 
     var modI = 8;
@@ -86,7 +85,7 @@ export default class Dither {
     var r, g, b;
     var index;
     var paletteLength = palette.length;
-    var matrix = bayerMatrix8x8;
+    var matrix = this.bayerMatrix8x8;
     var numPixels = width * height;
     var indexedPixels = new Uint8Array(numPixels);
 

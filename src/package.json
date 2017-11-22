@@ -27,6 +27,7 @@
     "dependencies": {
         "antd": "^2.13.7",
         "get-pixels": "^3.3.0",
+        "inkjet": "^2.1.2",
         "localforage": "^1.5.3",
         "react": "^16.0.0",
         "react-dom": "^16.0.0",

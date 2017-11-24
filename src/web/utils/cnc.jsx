@@ -35,7 +35,7 @@ export default class CNC {
         }
         w /= dw;
         h /= dw;
-        var pixels = new Dither().ClosestDithering(pts, w, h, [
+        var pixels = new Dither().Dithering(pts, w, h, [
           [0, 0, 0],
           [0xff, 0xff, 0xff]
         ]);
@@ -234,60 +234,103 @@ export default class CNC {
         var pts = [];
         var dw = Math.max(2, Math.round(Math.min(w, h) / 120));
         dw += dw % 2;
-        dw = 1;
+        var tw = 0,
+          th = 0;
         for (var i = 0; i < h; i += dw) {
+          th++;
+          tw = 0;
           for (var j = 0; j < w; j += dw) {
+            tw++;
             var n = (i * w + j) * 4;
             pts.push(pixels.data[n]);
             pts.push(pixels.data[n + 1]);
             pts.push(pixels.data[n + 2]);
           }
         }
-        w /= dw;
-        h /= dw;
-        var pixels = new Dither().FloydSteinberg(pts, w, h, [
+        w = tw;
+        h = th;
+        var pixels = new Dither().Dither(pts, w, h, [
           [0, 0, 0],
           [0xff, 0xff, 0xff]
         ]);
         var buffer = [];
-        var dw = 2;
         var svg =
-          '<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1"><g transform="scale(0.5,0.5)">';
+          '<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1"><g transform="scale(1,1)">';
         var path = "";
+        var lines = [];
         for (var i = 0; i < h; i++) {
           for (var j = 0; j < w; j++) {
             if (pixels[i * w + j] == 0) {
-              // buffer.push(0x0);
-              // buffer.push(0x0);
-              // buffer.push(0x0);
-              // buffer.push(0xff);
-              path += [
-                "M",
-                j - 0.5,
-                i,
-                "L",
-                j + 0.5,
-                i,
-                "M",
-                j,
-                i - 0.5,
-                "L",
-                j,
-                i + 0.5,
-                ""
-              ].join(" ");
-            } else {
-              // buffer.push(0xff);
-              // buffer.push(0xff);
-              // buffer.push(0xff);
-              // buffer.push(0xff);
+              lines.push([{ x: j - 0.5, y: i }, { x: j + 0.5, y: i }]);
+              lines.push([{ x: j, y: i - 0.5 }, { x: j, y: i + 0.5 }]);
             }
           }
         }
+        var index = 0;
+        var subIndex = 1;
+        var prevX = 0;
+        var prevY = 0;
+        console.log(w, h, lines.length);
+        function addLine(x, y) {
+          if (!lines[x]) {
+            return;
+          }
+          var d = [];
+          if (prevX != lines[x][y].x || prevY != lines[x][y].y) {
+            d = [
+              "M",
+              lines[x][y].x,
+              lines[x][y].y,
+              "L",
+              lines[x][1 - y].x,
+              lines[x][1 - y].y,
+              ""
+            ];
+          } else {
+            d = ["L", lines[x][1 - y].x, lines[x][1 - y].y, ""];
+          }
+          prevX = lines[x][1 - y].x;
+          prevY = lines[x][1 - y].y;
+          path += d.join(" ");
+        }
+        function nextClosetLine(x, y) {
+          addLine(index, 1 - subIndex);
+          lines.splice(index, 1);
+          var minDist = 10000;
+          var dist = 0;
+          var dx, dy;
+          for (var i = 0; i < lines.length; i++) {
+            for (var j = 0; j < 2; j++) {
+              if (!lines[i][j]) {
+                continue;
+              }
+              dx = lines[i][j].x - x;
+              dy = lines[i][j].y - y;
+              dist = dx * dx + dy * dy;
+              if (dist < minDist) {
+                minDist = dist;
+                index = i;
+                subIndex = 1 - j;
+                if (minDist < 1) {
+                  return;
+                }
+              }
+            }
+          }
+        }
+        var t = new Date().getTime();
+        while (lines.length) {
+          if (lines[index]) {
+            nextClosetLine(lines[index][subIndex].x, lines[index][subIndex].y);
+          } else {
+            nextClosetLine(0, 0);
+          }
+        }
+        console.log(new Date().getTime() - t);
         svg +=
           '<path d="' +
           path +
-          '" stroke="black" stroke-width="0.1" fill="none"/>';
+          '" stroke="black" stroke-width="0.2" fill="none"/>';
         svg += "</g></svg>";
         resolve(svg);
       });
@@ -298,14 +341,17 @@ export default class CNC {
     var gcode = this.parsePath(this.svgReader.parse(svg.trim(), {}).allcolors);
 
     // fs.writeFileSync("./bundle/web/assets/gcode.txt", gcode);
-    var output = "m1 p1\nm1 p1\nm1 p1\ng0 f800\n" + gcode + "g0 x0 y0\nm1 p0";
+    var output =
+      "m1 p1\nm1 p1\nm1 p1\ng0 f800\ng0 f800\ng0 f800 a1000\n" +
+      gcode +
+      "g0 x0 y0\nm1 p0";
     console.log(output);
     return output;
   }
   parsePath(paths) {
     var output = "";
     var power = "";
-    var maxPower = 100;
+    var maxPower = 180;
     for (var i = 0; i < paths.length; i++) {
       for (var j = 0; j < paths[i].length; j++) {
         var v = paths[i][j];

@@ -41,7 +41,14 @@ export default class Dither {
     }
     return bestIndex;
   }
-
+  Dither(inPixels, width, height, palette, mode) {
+    if (mode == 0) {
+      return this.ClosestDithering(inPixels, width, height, palette);
+    } else if (mode == 1) {
+      return this.BayerDithering(inPixels, width, height, palette);
+    }
+    return this.FloydSteinberg(inPixels, width, height, palette);
+  }
   // TODO: inPixels -> inComponents or inColors or something more accurate
   BayerDithering(inPixels, width, height, palette) {
     var offset = 0;

@@ -62,3 +62,4 @@ package-lock.json
 *.log
 src/bundle
 builder/releases
+.vscode

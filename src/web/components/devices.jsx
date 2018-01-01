@@ -17,7 +17,12 @@ export default class DeviceSelector extends React.Component {
       if (ports[i].comName.toLowerCase().indexOf("bluetooth") > -1) {
         continue;
       }
-      this.ports.push(ports[i]);
+      if (
+        ports[i].comName.toLowerCase().indexOf("usb") > -1 ||
+        ports[i].comName.toLowerCase().indexOf("tty") < 0
+      ) {
+        this.ports.push(ports[i]);
+      }
     }
     this.forceUpdate();
   }
